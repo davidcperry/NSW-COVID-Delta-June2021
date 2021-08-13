@@ -1,0 +1,156 @@
+---
+title: "New South Wales COVID-19 Delta Outbreak June 2021"
+author: "DP"
+date: "13/08/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Data Source - NSW Government COVID-19 Data Program: https://data.nsw.gov.au/nsw-covid-19-data/cases
+
+```{r libs, include=FALSE}
+
+library(tidyr)
+library(readxl)
+library(dplyr)
+
+library(tidytext)
+library(igraph)
+library(ggraph)
+library(tibble)
+library(stringi)
+library(stringr)
+library(widyr)
+library(reshape2)
+library(tokenizers)
+
+library(data.table)
+library(DT)
+library(visNetwork)
+library(randomcoloR)
+library(TTR)
+
+
+
+```
+
+```{r getdata, include=FALSE}
+
+nsw1 <- read_excel("G:/OneDrive/Documents/NSW-COVID-Data/nsw1.xlsx")
+
+
+
+nsw1$notification_date <- as.Date(nsw1$notification_date, origin = "1899-12-30")
+
+nsw1 <- filter(nsw1, ID < 5725)
+
+```
+
+
+```{r main, echo=FALSE}
+
+nsw1$lga_name19 = substr(nsw1$lga_name19,1,nchar(nsw1$lga_name19)-4)
+
+nsw1$targetlga <- nsw1$lga_name19
+nsw1$notifdate <- nsw1$notification_date
+#nsw1$sourcelga <- nsw1$FinalPrevLGA
+
+
+
+nsw1$targetID <- nsw1$ID
+nsw1$sourceID <- nsw1$FinalDerivedPrevID
+
+a1 <- tibble(targetID = str_trim(as.character(nsw1$targetID)),
+             sourceID = str_trim(as.character(nsw1$sourceID)),
+             targetlga = str_trim(as.character(nsw1$targetlga))
+             )
+
+a1 <- tibble::rowid_to_column(a1, "ID")
+
+a1_bigrams_counts <- a1 %>% 
+  count(targetID, sourceID, sort = TRUE)  
+
+vis_graph <- a1_bigrams_counts %>%
+  filter(n > 0) %>%
+  graph_from_data_frame()
+data <- toVisNetworkData(vis_graph)
+
+
+##########################
+# Set up LGA colour mapping
+xx <-  distinct(data.frame(a1$targetlga))
+colnames(xx) <- "LGA"
+xx <- rowid_to_column(xx, "ID")
+
+n <- nrow(xx)
+set.seed(123)
+palette <- data.frame(distinctColorPalette(n))
+colnames(palette) <- "LGAcolour"
+palette <- rowid_to_column(palette,"PalleteID")
+
+bu.colour.map <- right_join(palette, xx, by=c('PalleteID'='ID'))
+#########################
+
+
+
+nodes <- data[[1]]
+nodes$size <- (log(degree(vis_graph))+1)*10
+edges <- data[[2]]
+edges$width <- (edges$n / 2.5)
+nodes$numinteractions <- degree(vis_graph)
+
+
+# Index Case - Make it the largest size node for visibility
+nodes[1,]$size = 60
+
+#nodes$label = 'test2'
+
+#z <- tibble(ID1 = as.character(nsw1$ID), IDLGA = nsw1$lga_name19)
+#z <- distinct(z)
+#nodes$lga  <-  right_join(z, nodes, by=c('ID1'='label'))$IDLGA
+#nodes$label <- nodes$lga
+
+
+z <- tibble(ID1 = as.character(nsw1$ID), IDLGA = nsw1$lga_name19, notifdate = nsw1$notifdate)
+z <- distinct(z)
+nodes$lga  <-  right_join(z, nodes, by=c('ID1'='label'))$IDLGA
+nodes$notifdate <-  right_join(z, nodes, by=c('ID1'='label'))$notifdate
+nodes$label <- paste(nodes$lga, nodes$notifdate,sep="-")
+#nodes$label <- nodes$lga
+#nodes$title <- nodes$notifdate
+#nodes$notifdate <- as.character(nodes$notifdate)
+
+
+nodes[1,]$label = 'Index Case - 2021-06-17'
+
+
+
+##########
+nodes <- inner_join(bu.colour.map, nodes, by=c('LGA'='lga'))
+nodes$color.background <- nodes$LGAcolour
+nodes <- nodes[order(nodes$id),]
+#########
+
+
+nodes[1,]$color.background = '#000000'
+nodes[1,]$title = 'Index Case'
+
+legend <- data.frame(label=nodes$LGA, color=nodes$color.background, shape='square', size=16)
+
+#nodes$title = 'test'
+
+visNetwork(nodes, edges, width="100%", height=550) %>%
+  visOptions(highlightNearest = TRUE) %>%
+  visOptions(highlightNearest = list(enabled = T, degree = 1, hover = F), nodesIdSelection = TRUE) %>%
+  visEdges(shadow = TRUE) %>%
+  visLayout(randomSeed = 123) %>%
+  visInteraction(hover = T) %>%
+  visInteraction(tooltipStyle = 'position: fixed;visibility:hidden;padding: 5px;white-space: nowrap;
+      font-family: arial;font-size:12px;font-color:white;background-color: lightyellow;border: 1px solid grey')   %>%  
+  visPhysics(stabilization = TRUE)
+
+```
+
