@@ -1,20 +1,20 @@
 ---
-title: "New South Wales COVID-19 Delta Outbreak June 2021"
+title: "New South Wales COVID-19 Delta Outbreak 06/2021"
 knit: (function(input_file, encoding) {
   out_dir <- 'docs';
   rmarkdown::render(input_file,
  encoding=encoding,
  output_file=file.path(dirname(input_file), out_dir, 'index.html'))})
-author: "DP"
 date: "13/08/2021"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
+```{r setup, include=FALSE, warning=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
 Data Source - NSW Government COVID-19 Data Program: https://data.nsw.gov.au/nsw-covid-19-data/cases
+ (Data up to 30 June 2021)
 
 ```{r libs, include=FALSE}
 
@@ -55,7 +55,7 @@ nsw1 <- filter(nsw1, ID < 5725)
 ```
 
 
-```{r main, echo=FALSE}
+```{r main, echo=FALSE, warning=FALSE}
 
 nsw1$lga_name19 = substr(nsw1$lga_name19,1,nchar(nsw1$lga_name19)-4)
 
