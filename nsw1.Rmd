@@ -151,7 +151,7 @@ legend <- data.frame(label=nodes$LGA, color=nodes$color.background, shape='squar
 
 visNetwork(nodes, edges, width="100%", height=550) %>%
   visOptions(highlightNearest = TRUE) %>%
-  visOptions(highlightNearest = list(enabled = T, degree = 1, hover = F),selectedBy = "group", nodesIdSelection = TRUE) %>%
+  visOptions(highlightNearest = list(enabled = T, degree = 1, hover = F),selectedBy = "group", nodesIdSelection = list(enabled = TRUE, main="Select Case")) %>%
   visEdges(shadow = TRUE) %>%
   visLayout(randomSeed = 123) %>%
   visInteraction(hover = T) %>%
