@@ -131,7 +131,7 @@ nodes$label <- paste(nodes$lga, nodes$notifdate,sep="-")
 
 nodes[1,]$label = 'Index Case - 2021-06-17'
 
-
+nodes$group <- nodes$lga
 
 ##########
 nodes <- inner_join(bu.colour.map, nodes, by=c('LGA'='lga'))
@@ -143,13 +143,15 @@ nodes <- nodes[order(nodes$id),]
 nodes[1,]$color.background = '#000000'
 nodes[1,]$title = 'Index Case'
 
+
+
 legend <- data.frame(label=nodes$LGA, color=nodes$color.background, shape='square', size=16)
 
 #nodes$title = 'test'
 
 visNetwork(nodes, edges, width="100%", height=550) %>%
   visOptions(highlightNearest = TRUE) %>%
-  visOptions(highlightNearest = list(enabled = T, degree = 1, hover = F), nodesIdSelection = TRUE) %>%
+  visOptions(highlightNearest = list(enabled = T, degree = 1, hover = F),selectedBy = "group", nodesIdSelection = TRUE) %>%
   visEdges(shadow = TRUE) %>%
   visLayout(randomSeed = 123) %>%
   visInteraction(hover = T) %>%
