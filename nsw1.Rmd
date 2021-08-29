@@ -14,7 +14,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 Data Source - NSW Government COVID-19 Data Program: https://data.nsw.gov.au/nsw-covid-19-data/cases
- (Data up to 30 June 2021)
+ (Data up to 30 June 2021.)
 
 ```{r libs, include=FALSE}
 
@@ -45,8 +45,6 @@ library(TTR)
 ```{r getdata, include=FALSE}
 
 nsw1 <- read_excel("G:/OneDrive/Documents/NSW-COVID-Data/nsw1.xlsx")
-
-
 
 nsw1$notification_date <- as.Date(nsw1$notification_date, origin = "1899-12-30")
 
